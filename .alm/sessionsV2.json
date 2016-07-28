@@ -1,0 +1,24 @@
+{
+  "sessions": [
+    {
+      "id": "901f926b-4ffb-43ef-9206-de7f0a5ce3f7",
+      "tabLayout": {
+        "type": "stack",
+        "width": 100,
+        "height": 100,
+        "tabs": [
+          {
+            "id": "b6766ee8-208c-472a-a669-00385d4d5f0e",
+            "relativeUrl": "file://./buzzerClient/app/pages/home/home.ts",
+            "additionalData": null
+          }
+        ],
+        "subItems": [],
+        "activeItemIndex": 0
+      },
+      "lastUsed": 1469493508337,
+      "selectedTabId": "b6766ee8-208c-472a-a669-00385d4d5f0e"
+    }
+  ],
+  "relativePathToTsconfig": "./buzzerClient/tsconfig.json"
+}

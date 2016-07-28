@@ -1,0 +1,16 @@
+{
+  "name": "buzzerapp",
+  "version": "1.0.0",
+  "description": "This is quiz buzzer app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bajinder",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://bajinder_budhwar@bitbucket.org/buzzerappteam/buzzer.git"
+  },
+  "homepage": "https://bitbucket.org/buzzerappteam/buzzer#readme"
+}
