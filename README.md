@@ -14,7 +14,8 @@ To set up on local machine for all the contributors they need to clone the branc
 2. Using GUI version control tool e.g. Source Tree
 ### Contribution guidelines ###
 
-When a contributor submits the contribution please provide appropriate comments
+When a contributor submits the contribution please provide appropriate comments and please don't submit the code in master branch until the final review.
+Code review will be conducted by the peer.
 
 ### Who do I talk to? ###
 If the contributors have any doubts or queries. Please contact me on b.bajindersingh@cqumail.com
