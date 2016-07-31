@@ -12,5 +12,8 @@
     "type": "git",
     "url": "git+https://bajinder_budhwar@bitbucket.org/buzzerappteam/buzzer.git"
   },
-  "homepage": "https://bitbucket.org/buzzerappteam/buzzer#readme"
+  "homepage": "https://bitbucket.org/buzzerappteam/buzzer#readme",
+  "dependencies": {
+    "mongodb": "^2.2.5"
+  }
 }
