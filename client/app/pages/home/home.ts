@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {NavController} from 'ionic-angular';
-import {TeamPage} from '../teamPage/teamPage';
+import {TeamCodeForm} from '../teamCodeForm/teamCodeForm';
 
 @Component({
   templateUrl: 'build/pages/home/home.html'
@@ -11,6 +11,6 @@ export class HomePage {
     this.nav=navCtrl;
   }
   teamCodeInput(){
-    this.nav.push(TeamPage);
+    this.nav.push(TeamCodeForm);
   }
 }
