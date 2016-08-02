@@ -5,7 +5,8 @@ var MongoClient = require("mongodb").MongoClient;
 var mongo = {
     mongo: mongodb,
     db: null,
-    collection:null
+    studentCollection:"Students",
+    questionsCollection:"collectionOfQuestions"
 }
 
 //mLab connectivity options
@@ -25,7 +26,8 @@ mongo.init = function () {
             //On successfull connection we get the db and collection refrences
             console.log('DB connection successfull');
             mongo.db = db;
-            mongo.collection=db.collection("logs");
+            questionsCollection=db.collection("collectionOfQuestions");
+            studentCollection=db.collection("Students");
         }
     });
 }
