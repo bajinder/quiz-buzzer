@@ -1,0 +1,13 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Group Code</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding class="group-code-form">
+  <form #f="ngForm" (ngSubmit)="fetchGroupMembers(f.form)">
+    <ion-input type="text" ngControl="groupCode" required placeholder="Enter group code!!!"> </ion-input>
+    <button full id="btnStudent" type="submit">Go!!</button>
+    <button full (click)="doAlert()">Alert</button>
+  </form>
+</ion-content>
