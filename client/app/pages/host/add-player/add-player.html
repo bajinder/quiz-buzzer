@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Add Players</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding class="add-playere">
+  
+  <div class="outer">
+    
+    <ion-item>
+      <ion-input [(ngModel)]="playerId" required placeholder="Player Id"></ion-input>
+    </ion-item>
+    <button round id="btnAddPlayer" (click)="addPlayer()">AddPlayer</button>
+    <ion-list inset>
+      <ion-item *ngFor="let player of arrPlayers">
+          <ion-label>{{player.id}}</ion-label>
+          <ion-label>{{player.name}}</ion-label>
+          <ion-label *ngIf="!player.isOnline">
+            <ion-spinner name="bubbles"></ion-spinner>
+          </ion-label>
+          <ion-label secondary *ngIf="player.isOnline">
+            online
+          </ion-label>
+      </ion-item>
+    </ion-list>
+    <button round id="btnStartGame" [disabled]="startButtonDisabled" (click)="startGame()">Start Game</button>
+  </div>
+</ion-content>

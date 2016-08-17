@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Game Room</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding inset class="game-room">
+  <ion-list inset>
+    <ion-item *ngFor="let player of arrPlayers">
+      <ion-label>{{player.id}}</ion-label>
+      <ion-label>{{player.name}}</ion-label>
+      <ion-label>{{player.quizScore}}</ion-label>
+    </ion-item>
+  </ion-list>
+  <ion-item>
+    <ion-label>{{currentQuestion.question}}</ion-label>
+  </ion-item>
+  <ion-list>
+    <ion-item>A. {{currentQuestion.optionA}}</ion-item>
+    <ion-item>B. {{currentQuestion.optionB}}</ion-item>
+    <ion-item>C. {{currentQuestion.optionC}}</ion-item>
+    <ion-item>D. {{currentQuestion.optionD}}</ion-item>
+  </ion-list>
+
+
+
+
+  <div class="outer">
+    <div class="inner">
+      <button round large id="btnQuestion" (click)="askQuestion()">Ask Question</button>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Join Game
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding class="player-join">
+  <div class="outer">
+    <div class="inner">
+      <form #f="ngForm" (ngSubmit)="join(f.form)">
+        <ion-item>
+        <ion-input type="text" ngControl="playerID" required placeholder="Player ID"> </ion-input>
+        </ion-item>
+        <button id="btnPlayerSubmit" round type="submit">Join Game</button>
+      </form>
+    </div>
+  </div>
+</ion-content>
