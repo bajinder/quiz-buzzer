@@ -7,9 +7,10 @@
 // By default each design mode includes these shared imports.
 // App Shared Sass variables belong in app.variables.scss.
 
-@import "../pages/teamPage/teamPage";
 
 @import "../pages/home/home";
+@import "../pages/player/player-join/player-join";
+@import "../pages/host/add-player/add-player";
 
 .toolbar-title{
     text-align: center;

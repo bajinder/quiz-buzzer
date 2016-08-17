@@ -1,2 +1,13 @@
 .home {
+
 }
+    .inner {
+        display: table-cell;
+        vertical-align: middle;
+    }
+    .outer{
+        display:table;
+        height:80%;
+        width:100%;
+        text-align: center;
+    }

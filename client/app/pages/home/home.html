@@ -1,10 +1,16 @@
 <ion-header>
   <ion-navbar>
-    <ion-title>Home</ion-title>
+    <ion-title>Quiz Game</ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding class="home">
-  <button full id="btnTeacher" (click)="teamCodeInput()">Teacher</button>
-  <button full id="btnStudent">Student</button>
+  <div class="outer">
+    <div class="inner">
+      <button round large id="btnHost" (click)="goToHost()">Host</button><br>
+      <button round large id="btnPlayer" (click)="playerJoin()">Player</button>
+    </div>
+
+  </div>
+
 </ion-content>
