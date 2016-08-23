@@ -13,8 +13,8 @@ var roomNumber = -1;
 var sockets = {}; //Array for cross ref for socketID and player ID
 var rooms = []; //Array of rooms vs host vs players
 //starting the server
-server.listen(3030, function () {
-  console.log('Server started at 3030');
+server.listen(process.env.PORT || 8080, function () {
+  console.log('Server started at 8080');
   console.log("Waiting for DB connection!!!");
   //on successfull start initiate mongo db connection
   mongo.init();
@@ -51,20 +51,22 @@ io.on('connection', function (socket) {
     roomNumber++;
     addHostToRoom(socket.id, roomNumber);
     socket.join(roomNumber);
-    sockets[socket.id] = {      //socket to room cross ref
+    sockets[socket.id] = {      //socket-room cross ref
       room: roomNumber
     };
   });
   socket.on("addPlayer", (data) => {
     var playerRoom = getRoomOfPlayer(data.playerID);
     if (playerRoom == null) {
-      mongo.db.collection(mongo.studentCollection).find({ "_id": data.playerID }).toArray((err, docs) => {
+      mongo.db.collection(mongo.studentCollection).find({ 
+        "_id": data.playerID, 
+      }).toArray((err, docs) => {
         var room = sockets[socket.id].room; //getting room number
         if (err) {
           console.log("DB error while fetching the player");
         } else {
           if (docs.length > 0) {
-            player = new Player(socket.id, data.playerID);  //creating player
+            player = new Player(socket.id, docs[0]);  //creating player
             console.log("Adding player " + data.playerID + " to room " + room);
             addPlayerToRoom(player, room); //adding player to room
             socket.emit('addPlayerResponse', {
@@ -108,13 +110,41 @@ io.on('connection', function (socket) {
       while (repetedQuestion(qusNum)) {
         qusNum = getRandomQuestionNum(0, rooms[roomNumber].questions.length);
       }
+      rooms[roomNumber].currentQuestion = qusNum;             //this variable will keep the current question in the room
       //On successfull generation of question number. push the question to the clients in the room
-      console.log("Question " + qusNum);
-      io.in(roomNumber).emit('question', { question: rooms[roomNumber].questions[qusNum] });
+      var question = rooms[roomNumber].questions[qusNum];
+      io.in(roomNumber).emit('question', { question: question });
     } else {
       io.in(roomNumber).emit('quizEnd');
     }
   });
+  socket.on("checkAnswer", (data) => {
+    var roomNumber = sockets[socket.id].room;
+    var qNum = rooms[roomNumber].currentQuestion;
+    var question = rooms[roomNumber].questions[qNum];
+    console.log("answer: "+data.answer);
+    console.log(question);
+    if (question.answer==data.answer) {
+      rooms[roomNumber].answeredQuestions.push(qNum);     //Storing the answered question so that we don't repeat them
+      var players=rooms[roomNumber].players;
+      var score=0;
+      for(var i=0;i<players.length;i++){
+        if(players[i].playerID==sockets[socket.id].playerID){
+          players[i].quizScore=players[i].quizScore+1;
+          score=players[i].quizScore;
+        }
+      }
+      rooms[roomNumber].players=players;
+      socket.emit('answerStatus',{
+        playerScore:score,
+        isAnswerCorrect:true
+      });
+    }else{
+      socket.emit('answerStatus',{
+        isAnswerCorrect:false
+      });
+    }
+  })
   //Function to check if question has already been answered in the room
   function repetedQuestion(qNum) {
     var flag = false;
@@ -142,17 +172,16 @@ io.on('connection', function (socket) {
       console.log("Player does not belong to any room");
       socket.emit("invalidPlayer");
     }
-
   });
 
   socket.on("buzzer", (data) => {
     var roomNumber = sockets[socket.id].room;
-    console.log("buzzer pressed by: " + socket.id + " player: " + socket.id +"  "+rooms[roomNumber].buzzerSequence.length);
-    if (rooms[roomNumber].buzzerSequence.length <=0) {    //If this socket is the first one to press the buzzer than execute this
+    console.log("buzzer pressed by: " + socket.id + " player: " + socket.id + "  " + rooms[roomNumber].buzzerSequence.length);
+    if (rooms[roomNumber].buzzerSequence.length <= 0) {    //If this socket is the first one to press the buzzer than execute this
       rooms[roomNumber].buzzerSequence.push(socket.id);    //First player to press the buzzer will answer the question
-      io.in(roomNumber).emit("playerAnswering", {
-        playerID: sockets[socket.id],
-        socketID: socket.id
+      socket.emit("firstToPressBuzzer"); //This event will be triggered to the socket who is answering the question
+      io.in(roomNumber).emit("playerAnswering", {   //This is to let everyone know in the room that who pressed the buzzer first
+        playerID: sockets[socket.id].playerID
       });
     } else {
       rooms[roomNumber].buzzerSequence.push(socket.id);

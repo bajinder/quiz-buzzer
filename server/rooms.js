@@ -7,9 +7,10 @@ exports.Room = function (room,hostSocketID) {
     this.answeredQuestions=[];
 }
 
-exports.Player= function(playerSocketID,playerID){
+exports.Player= function(playerSocketID,player){
     this.playerSocketID=playerSocketID;
-    this.playerID=playerID;
+    this.playerID=player._id;
+    this.quizScore=player.QuizScore;
 }
 
 exports.Question=function(question){
@@ -18,4 +19,5 @@ exports.Question=function(question){
     this.optionB=question.optB;
     this.optionC=question.optC;
     this.optionD=question.optD;
+    this.answer=question.answer;
 }
