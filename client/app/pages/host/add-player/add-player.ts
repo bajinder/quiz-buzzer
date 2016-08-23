@@ -20,6 +20,7 @@ export class PlayersAdd {
       if (data.isPlayerValid) {
         this.ngZone.run(() => {
           this.arrPlayers.push(new Player(data.playerInfo));
+          this.playerId="";
           this.checkAllPlayersOnline();   //Checking if all the players are online
         });
         this.loader.dismiss();
@@ -73,7 +74,7 @@ export class PlayersAdd {
 
   checkAllPlayersOnline() {
     for (var i = 0; i < this.arrPlayers.length; i++) {
-      if (this.arrPlayers[i].isOnline) {
+      if (this.arrPlayers[i].isOnline && (this.arrPlayers.length>1)) {
         this.startButtonDisabled = false;
       } else {
         this.startButtonDisabled = true;
