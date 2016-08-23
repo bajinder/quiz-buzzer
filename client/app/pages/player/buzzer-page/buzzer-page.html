@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Buzzer
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding class="buzzer-page">
+
+  <div>
+    <ion-lable>Score: {{playerScore}}</ion-lable>
+  </div>
+  <ion-item>
+    <ion-label>{{currentQuestion.question}}</ion-label>
+  </ion-item>
+  <ion-list radio-group [(ngModel)]="answer">
+    <ion-item>
+      <ion-label>A. {{currentQuestion.optionA}}</ion-label>
+      <ion-radio (ionSelect)="sendAnswer()" [disabled]="disableOpt" value="A"></ion-radio>
+    </ion-item>
+    <ion-item>
+      <ion-label>B. {{currentQuestion.optionB}}</ion-label>
+      <ion-radio (ionSelect)="sendAnswer()" [disabled]="disableOpt" value="B"></ion-radio>
+    </ion-item>
+    <ion-item>
+      <ion-label>C. {{currentQuestion.optionC}}</ion-label>
+      <ion-radio (ionSelect)="sendAnswer()" [disabled]="disableOpt" value="C"></ion-radio>
+    </ion-item>
+    <ion-item>
+      <ion-label>D. {{currentQuestion.optionD}}</ion-label>
+      <ion-radio (ionSelect)="sendAnswer()" [disabled]="disableOpt" value="D"></ion-radio>
+    </ion-item>
+  </ion-list>
+
+  <div class="outer">
+    <div class="inner">
+      <button id="btnBuzzer" (click)="buzzer()" large danger round>Buzzer</button>
+    </div>
+  </div>
+</ion-content>

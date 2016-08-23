@@ -1,21 +1,23 @@
 import {Component} from '@angular/core';
-import {NavController} from 'ionic-angular';
-import { JoinGame } from '../joinGame/joinGame';
+import {NavController, Alert} from 'ionic-angular';
+import {PlayerJoin} from '../player/player-join/player-join';
+import {PlayersAdd} from '../host/add-player/add-player';
 
 
 @Component({
-  templateUrl: 'build/pages/home/home.html',
+  templateUrl: 'build/pages/home/home.html'
 })
 export class HomePage {
-  private objJoinGame: JoinGame;
-  nav:NavController;
+  nav: any;
+  constructor(private navCtrl: NavController) {
+    this.nav = navCtrl;
 
-  constructor(navCtrl: NavController) {
-    this.nav=navCtrl;
-    this.socket=io('http://localhost:3030');
   }
-  joinGame(){
-    
-    this.nav.push(JoinGame);
+  goToHost() {
+    this.nav.push(PlayersAdd);
+  }
+  playerJoin() {
+    console.log("playerJoin");
+    this.nav.push(PlayerJoin);
   }
 }
