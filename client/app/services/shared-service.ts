@@ -4,7 +4,7 @@ import * as io from 'socket.io-client';
 import {Loading} from 'ionic-angular';
 
 'use strict';
-export var clientSocket=io('https://buzzerserver.herokuapp.com');
+export var clientSocket=io('http://localhost:3030');
 
 export class Player {
     id: String;

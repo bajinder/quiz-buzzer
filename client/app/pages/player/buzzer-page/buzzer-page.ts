@@ -21,7 +21,7 @@ export class Buzzer {
   constructor(private navCtrl: NavController, private ngZone: NgZone) {
     this.navCtrl = navCtrl;
     this.ngZone = ngZone;
-    this.waitingForHost();
+    this.getReadyForQuestion();
     //Regestring event to recieve the questions
     clientSocket.on("question", (data) => {
       if (this.isLoading) {
@@ -52,19 +52,23 @@ export class Buzzer {
         this.disableOpt = false;
       });
     });
-    clientSocket.on("answerStatus", (data) => {
+    clientSocket.on("answerStatus", (data) => {   //checking the answer status if it is correct then notify host to push next question
       if (data.isAnswerCorrect) {
-        let toast = Toast.create({
-          message: "Correct Answer",
-          duration: 3000,
-        });
         this.ngZone.run(() => {
           this.playerScore = data.playerScore;
         });
-        this.navCtrl.present(toast);
-        toast.dismiss().then(() => {
-          this.waitingForHost()
+        let alert = Alert.create({
+          title: 'Congratulation',
+          message: "Correct Answer +1",
+          buttons: [{
+            text: 'ok',
+            handler: () => {
+              clientSocket.emit("confirmScoreRecieved");
+            }
+          }]
         });
+        this.navCtrl.present(alert);
+        //this.getReadyForQuestion();
       } else {
         let toast = Toast.create({
           message: "Wrong Answer",
@@ -73,9 +77,16 @@ export class Buzzer {
         this.navCtrl.present(toast);
       }
     });
+    //Server notifying clients to get ready for question
+    clientSocket.on("readyForQuestion", () => {
+      this.getReadyForQuestion();
+      this.ngZone.run(() => {
+        this.disableOpt = false;
+      });
+    });
   }
 
-  waitingForHost() {
+  getReadyForQuestion() {
     this.isLoading = true;
     this.loading = Loading.create({
       content: "Waiting for Question...",
