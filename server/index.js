@@ -13,7 +13,7 @@ var roomNumber = -1;
 var sockets = {}; //Array for cross ref for socketID and player ID
 var rooms = []; //Array of rooms vs host vs players
 //starting the server
-server.listen(process.env.PORT || 3030, function () {
+server.listen(process.env.PORT || 8080, function () {
   console.log('Server started at 8080');
   console.log("Waiting for DB connection!!!");
   //on successfull start initiate mongo db connection
@@ -104,15 +104,12 @@ io.on('connection', function (socket) {
   socket.on("askQuestion", (data) => {
     var roomNumber = sockets[socket.id].room;
     var qusNum = 0;
-    console.log(rooms[roomNumber].questions);
     console.log("Asking Question");
-    console.log(rooms[roomNumber].answeredQuestions);
     //if all questions has been answered then can't ask further questions
     if (rooms[roomNumber].questions.length > rooms[roomNumber].answeredQuestions.length) {
       while (repetedQuestion(qusNum)) {
-        qusNum = getRandomQuestionNum(0, rooms[roomNumber].questions.length); //getting random question  number
+        qusNum = getRandomQuestionNum(0, rooms[roomNumber].questions.length);
       }
-      console.log("Current Question ",qusNum);
       rooms[roomNumber].currentQuestion = qusNum;             //this variable will keep the current question in the room
       //On successfull generation of question number. push the question to the clients in the room
       var question = rooms[roomNumber].questions[qusNum];
@@ -129,32 +126,24 @@ io.on('connection', function (socket) {
     console.log(question);
     if (question.answer==data.answer) {
       rooms[roomNumber].answeredQuestions.push(qNum);     //Storing the answered question so that we don't repeat them
-      var players=rooms[roomNumber].players;    //Retriving player list in the room
+      var players=rooms[roomNumber].players;
       var score=0;
       for(var i=0;i<players.length;i++){
         if(players[i].playerID==sockets[socket.id].playerID){
-          players[i].quizScore=(players[i].quizScore+1);    //Calculating the score
+          players[i].quizScore=players[i].quizScore+1;
           score=players[i].quizScore;
         }
       }
-      rooms[roomNumber].players=players;    //assigning players back to the room with updated information
-      socket.emit('answerStatus',{  //letting client know about the answer statuc
+      rooms[roomNumber].players=players;
+      socket.emit('answerStatus',{
         playerScore:score,
         isAnswerCorrect:true
-      });
-      io.in(roomNumber).emit('updateScore',{  //Broadcasting in room for score update notification
-        playerScore:score,
-        playerID:sockets[socket.id].playerID
       });
     }else{
       socket.emit('answerStatus',{
         isAnswerCorrect:false
       });
     }
-  });
-  socket.on("confirmScoreRecieved",(data)=>{
-    var roomNumber=sockets[socket.id].room;
-    io.in(roomNumber).emit("readyForQuestion");
   })
   //Function to check if question has already been answered in the room
   function repetedQuestion(qNum) {
