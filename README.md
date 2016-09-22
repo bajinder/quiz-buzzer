@@ -9,7 +9,7 @@ The project is a quiz buzzer app.
 
 ### How do I get set up? ###
 
-To set up on local machine for all the contributors they need to clone the branch 1.0.0 on their local machine. There are commonly two ways to do that
+To set up on local machine for all the contributors they need to clone the branch 0.1 on their local machine. There are commonly two ways to do that
 1. Using terminal (Please google tutorials "how to use git commands")
 2. Using GUI version control tool e.g. Source Tree
 ### Contribution guidelines ###
