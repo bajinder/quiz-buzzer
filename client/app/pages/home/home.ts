@@ -9,9 +9,14 @@ import {PlayersAdd} from '../host/add-player/add-player';
 })
 export class HomePage {
   nav: any;
+  private sound: any;
   constructor(private navCtrl: NavController) {
     this.nav = navCtrl;
+    var homeSound="media/sounds/home.mp3";
+    this.soundPlay(homeSound).play();
 
+    
+    
   }
   goToHost() {
     this.nav.push(PlayersAdd);
@@ -19,5 +24,10 @@ export class HomePage {
   playerJoin() {
     console.log("playerJoin");
     this.nav.push(PlayerJoin);
+  }
+  soundPlay(src) {
+    this.sound = new Audio(src);
+    this.sound.load();
+    return this.sound;
   }
 }

@@ -11,7 +11,19 @@
 @import "../pages/home/home";
 @import "../pages/player/player-join/player-join";
 @import "../pages/host/add-player/add-player";
+@import "../pages/player/score-board/score-board";
+@import "../pages/player/buzzer-page/buzzer-page";
 
 .toolbar-title{
     text-align: center;
+    color: #fafafa !important;
+}
+ion-content{
+    background-color: #403d3d;
+}
+ion-label{
+    margin: 1px 1px 1px 0;
+}
+.toolbar-background{
+        background: #403d3d !important;
 }

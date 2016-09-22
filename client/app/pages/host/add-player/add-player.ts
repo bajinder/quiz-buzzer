@@ -11,6 +11,8 @@ export class PlayersAdd {
   arrPlayers: Array<Player> = new Array<Player>();
   startButtonDisabled: boolean = true;
   loader: Loading;
+  private onlineSound: any;
+  private sound: any;
   constructor(private navCtrl: NavController, private ngZone: NgZone) {
     this.navCtrl = navCtrl;
     this.ngZone = ngZone;
@@ -20,7 +22,7 @@ export class PlayersAdd {
       if (data.isPlayerValid) {
         this.ngZone.run(() => {
           this.arrPlayers.push(new Player(data.playerInfo));
-          this.playerId="";
+          this.playerId = "";
           this.checkAllPlayersOnline();   //Checking if all the players are online
         });
         this.loader.dismiss();
@@ -31,11 +33,15 @@ export class PlayersAdd {
       }
 
     });
+    
+     "media/sounds/online.mp3";
+
     clientSocket.on("playerOnline", (data) => {
       this.ngZone.run(() => {
         for (var i = 0; i < this.arrPlayers.length; i++) {
           if (this.arrPlayers[i].id == data.playerID) {
             this.arrPlayers[i].isOnline = true;
+            this.soundPlay("media/sounds/online.mp3").play();
           }
         }
         this.checkAllPlayersOnline();   //Checking if all the players are online
@@ -67,14 +73,13 @@ export class PlayersAdd {
   startGame() {
     clientSocket.emit("prepareQuestions");    //Notofying server to prepare questions for the room from database
     clientSocket.emit("startingGame");
-    this.navCtrl.push(GameRoom,{
-      players:this.arrPlayers
+    this.navCtrl.push(GameRoom, {
+      players: this.arrPlayers
     });
   }
-
   checkAllPlayersOnline() {
     for (var i = 0; i < this.arrPlayers.length; i++) {
-      if (this.arrPlayers[i].isOnline && (this.arrPlayers.length>1)) {
+      if (this.arrPlayers[i].isOnline) {
         this.startButtonDisabled = false;
       } else {
         this.startButtonDisabled = true;
@@ -97,5 +102,10 @@ export class PlayersAdd {
       position: "top"
     });
     this.navCtrl.present(toast);
+  }
+  soundPlay(src) {
+    this.sound = new Audio(src);
+    this.sound.load();
+    return this.sound;
   }
 }

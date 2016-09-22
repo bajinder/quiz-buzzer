@@ -42,6 +42,7 @@ gulp.task('watch', ['clean'], function(done){
     function(){
       gulpWatch('app/**/*.scss', function(){ gulp.start('sass'); });
       gulpWatch('app/**/*.html', function(){ gulp.start('html'); });
+      gulpWatch('app/**/*.mp3', function(){ gulp.start('mp3'); });
       buildBrowserify({ watch: true }).on('end', done);
     }
   );

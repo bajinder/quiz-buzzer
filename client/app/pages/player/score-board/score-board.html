@@ -1,0 +1,18 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Score Board
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding class="score-board">
+
+  <ion-list inset>
+    <ion-item *ngFor="let player of arrPlayers">
+      <ion-label>{{player.name}}</ion-label>
+      <ion-label>{{player.quizScore}}</ion-label>
+    </ion-item>
+  </ion-list>
+  <button (click)="reload()">Home</button>
+</ion-content>

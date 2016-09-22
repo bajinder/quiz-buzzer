@@ -13,7 +13,7 @@ export class PlayerJoin {
   constructor(private navCtrl: NavController) {
     this.nav = navCtrl;
     clientSocket.on("abortGame", () => {
-      let alert = Alert.create({
+      let abortGameAlert = Alert.create({
         title: "Game Abort",
         subTitle: "Host disconnected. Aborting game!!!",
         buttons: [{
@@ -25,10 +25,10 @@ export class PlayerJoin {
       });
       if (this.isLoading) {
         this.loading.dismiss().then(() => {
-          this.navCtrl.present(alert);
+          this.navCtrl.present(abortGameAlert);
         })
       }else {
-        this.navCtrl.present(alert);
+        this.navCtrl.present(abortGameAlert);
       }
     });
     clientSocket.on("invalidPlayer", (data) => {
