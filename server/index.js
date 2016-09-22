@@ -13,8 +13,10 @@ var roomNumber = -1;
 var sockets = {}; //Array for cross ref for socketID and player ID
 var rooms = []; //Array of rooms vs host vs players
 //starting the server
-server.listen(process.env.PORT || 8080, function () {
-  console.log('Server started at 8080');
+var port = process.env.PORT || 3030;  //For Heroku cloud hosting uncomment
+//var port=3030;    //Uncomment for local server 
+server.listen(port, function () {
+  console.log('Server started at '+server.address().port);
   console.log("Waiting for DB connection!!!");
   //on successfull start initiate mongo db connection
   mongo.init();
@@ -58,8 +60,8 @@ io.on('connection', function (socket) {
   socket.on("addPlayer", (data) => {
     var playerRoom = getRoomOfPlayer(data.playerID);
     if (playerRoom == null) {
-      mongo.db.collection(mongo.studentCollection).find({ 
-        "_id": data.playerID, 
+      mongo.db.collection(mongo.studentCollection).find({
+        "_id": data.playerID,
       }).toArray((err, docs) => {
         var room = sockets[socket.id].room; //getting room number
         if (err) {
@@ -72,9 +74,9 @@ io.on('connection', function (socket) {
             socket.emit('addPlayerResponse', {
               isPlayerValid: true,
               playerInfo: {
-                id: docs[0]._id,
-                Name: docs[0].StudentName,
-                QuizScore: docs[0].QuizScore
+                playerID: docs[0]._id,
+                playerName: docs[0].StudentName,
+                quizScore: docs[0].QuizScore
               }
             });
           } else {
@@ -103,53 +105,72 @@ io.on('connection', function (socket) {
   });
   socket.on("askQuestion", (data) => {
     var roomNumber = sockets[socket.id].room;
-    var qusNum = 0;
     console.log("Asking Question");
+    console.log(rooms[roomNumber].answeredQuestions);
     //if all questions has been answered then can't ask further questions
+    var questionNumber = rooms[roomNumber].currentQuestion;
+    console.log("Current Question ", questionNumber);
     if (rooms[roomNumber].questions.length > rooms[roomNumber].answeredQuestions.length) {
-      while (repetedQuestion(qusNum)) {
-        qusNum = getRandomQuestionNum(0, rooms[roomNumber].questions.length);
+      while (repetedQuestion(questionNumber)) {
+        console.log("Repeated question: " + repetedQuestion(questionNumber));
+        questionNumber = getRandomQuestionNum(1, rooms[roomNumber].questions.length - 1); //getting random question  number
+        console.log("Random question: " + questionNumber);
       }
-      rooms[roomNumber].currentQuestion = qusNum;             //this variable will keep the current question in the room
-      //On successfull generation of question number. push the question to the clients in the room
-      var question = rooms[roomNumber].questions[qusNum];
-      io.in(roomNumber).emit('question', { question: question });
-    } else {
-      io.in(roomNumber).emit('quizEnd');
+      rooms[roomNumber].answeredQuestions.push(questionNumber);     //Storing the answered question so that we don't repeat them
+      rooms[roomNumber].currentQuestion = questionNumber;             //this variable will keep the current question in the room
+      rooms[roomNumber].buzzerSequence = [];  //clearing the buzzer sequence
+      //On successfull generation of question number. push the question to the clients in the room 
+      io.in(roomNumber).emit('question', { question: rooms[roomNumber].questions[questionNumber] });
+    } else {  //End Of the Quiz
+      console.log("Quiz Ended");
+
+      io.in(roomNumber).emit('quizEnd', {
+        players: rooms[roomNumber].players
+      });
     }
   });
   socket.on("checkAnswer", (data) => {
     var roomNumber = sockets[socket.id].room;
-    var qNum = rooms[roomNumber].currentQuestion;
-    var question = rooms[roomNumber].questions[qNum];
-    console.log("answer: "+data.answer);
+    var questionNumber = rooms[roomNumber].currentQuestion;
+    var question = rooms[roomNumber].questions[questionNumber];
+    console.log("answer: " + data.answer);
     console.log(question);
-    if (question.answer==data.answer) {
-      rooms[roomNumber].answeredQuestions.push(qNum);     //Storing the answered question so that we don't repeat them
-      var players=rooms[roomNumber].players;
-      var score=0;
-      for(var i=0;i<players.length;i++){
-        if(players[i].playerID==sockets[socket.id].playerID){
-          players[i].quizScore=players[i].quizScore+1;
-          score=players[i].quizScore;
+    if (question.answer == data.answer) {
+      var players = rooms[roomNumber].players;    //Retriving player list in the room
+      var score = 0;
+      for (var i = 0; i < players.length; i++) {
+        if (players[i].playerID == sockets[socket.id].playerID) {
+          players[i].quizScore++;    //Calculating the score
+          score = players[i].quizScore;
         }
       }
-      rooms[roomNumber].players=players;
-      socket.emit('answerStatus',{
-        playerScore:score,
-        isAnswerCorrect:true
+      rooms[roomNumber].players = players;    //assigning players back to the room with updated information
+      socket.emit('answerStatus', {  //letting client know about the answer statuc
+        playerScore: score,
+        isAnswerCorrect: true
       });
-    }else{
-      socket.emit('answerStatus',{
-        isAnswerCorrect:false
+      io.in(roomNumber).emit('updateScore', {  //Broadcasting in room for score update notification
+        playerScore: score,
+        playerID: sockets[socket.id].playerID
+      });
+    } else {
+      socket.emit('answerStatus', {
+        isAnswerCorrect: false
       });
     }
+  });
+  socket.on("confirmScoreRecieved", (data) => {
+    var roomNumber = sockets[socket.id].room;
+    io.in(roomNumber).emit("readyForQuestion");
   })
   //Function to check if question has already been answered in the room
-  function repetedQuestion(qNum) {
+  function repetedQuestion(questionNumber) {
     var flag = false;
-    if (rooms[roomNumber].answeredQuestions[qNum] == true) {
-      flag = true;
+    for (var i = 0; i < rooms[roomNumber].answeredQuestions.length; i++) {
+      if (rooms[roomNumber].answeredQuestions[i] == questionNumber) {
+        flag = true;
+        break;
+      }
     }
     return flag;
   }
@@ -169,7 +190,7 @@ io.on('connection', function (socket) {
       socket.join(room);
       io.in(room).emit('playerOnline', { playerID: playerID });
     } else {
-      console.log("Player does not belong to any room");
+      console.log("Player " + playerID + " not belong to any room");
       socket.emit("invalidPlayer");
     }
   });

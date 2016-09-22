@@ -2,7 +2,7 @@ exports.Room = function (room,hostSocketID) {
     this.hostSocketID=hostSocketID;
     this.players=[];
     this.questions=[];
-    this.currentQuestion=-1;
+    this.currentQuestion=0;
     this.buzzerSequence=[];
     this.answeredQuestions=[];
 }
@@ -10,6 +10,7 @@ exports.Room = function (room,hostSocketID) {
 exports.Player= function(playerSocketID,player){
     this.playerSocketID=playerSocketID;
     this.playerID=player._id;
+    this.playerName=player.StudentName;
     this.quizScore=player.QuizScore;
 }
 
