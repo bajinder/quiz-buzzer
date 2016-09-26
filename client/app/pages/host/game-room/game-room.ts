@@ -1,6 +1,6 @@
 import {Component, NgZone} from '@angular/core';
 import {NavController, NavParams, Loading, Alert} from 'ionic-angular';
-import {clientSocket, Player, Question} from '../../../services/shared-service';
+import {clientSocket, Player, Question, NotificationPromise} from '../../../services/shared-service';
 
 @Component({
   templateUrl: 'build/pages/host/game-room/game-room.html'
@@ -8,7 +8,7 @@ import {clientSocket, Player, Question} from '../../../services/shared-service';
 export class GameRoom {
   arrPlayers: Array<Player>;
   currentQuestion: Question = new Question({
-    question: "Question Sting "
+    question: ""
   });
   constructor(private navCtrl: NavController, private param: NavParams, private ngZone: NgZone) {
     this.navCtrl = navCtrl;
@@ -26,19 +26,28 @@ export class GameRoom {
       console.log("Quiz End");
     });
     clientSocket.on("updateScore", (data) => {
-      this.ngZone.run(()=>{
-        for(var i=0;i<this.arrPlayers.length;i++){
-          if(this.arrPlayers[i].id==data.playerID){
-            this.arrPlayers[i].quizScore=data.playerScore
+      this.ngZone.run(() => {
+        for (var i = 0; i < this.arrPlayers.length; i++) {
+          if (this.arrPlayers[i].id == data.playerID) {
+            this.arrPlayers[i].quizScore = data.playerScore
           }
         }
       });
     });
-    clientSocket.on("readyForQuestion",()=>{
-      let alert=Alert.create({
-        title:"Ask Next Questiion",
-        message:"Client are ready for next question",
-        buttons:["ok"]
+    clientSocket.on("readyForQuestion", () => {
+      let alert = Alert.create({
+        title: "Ask Next Questiion",
+        message: "Clients ready for next question",
+        buttons: ["ok"]
+      });
+      this.ngZone.run(() => {
+        this.currentQuestion = new Question({
+          question: "",
+          optionA: "",
+          optionB: "",
+          optionC: "",
+          optionD: ""
+        });
       });
       this.navCtrl.present(alert);
     });

@@ -35,7 +35,7 @@
 
   <div class="outer">
     <div class="inner">
-      <button id="btnBuzzer" (click)="buzzer()" large danger round>Buzzer</button>
+      <button id="btnBuzzer" (click)="buzzer()" [disabled]="disableBuzzer" large danger round>Buzzer</button>
     </div>
   </div>
 </ion-content>

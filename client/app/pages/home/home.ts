@@ -13,7 +13,7 @@ export class HomePage {
   constructor(private navCtrl: NavController) {
     this.nav = navCtrl;
     var homeSound="media/sounds/home.mp3";
-    this.soundPlay(homeSound).play();
+    //this.soundPlay(homeSound).play();
 
     
     

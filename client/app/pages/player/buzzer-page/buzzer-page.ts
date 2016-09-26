@@ -1,6 +1,6 @@
 import {Component, NgZone} from '@angular/core';
 import {NavController, Alert, Toast, Loading} from 'ionic-angular';
-import {clientSocket, Question, Player} from '../../../services/shared-service';
+import {clientSocket, Question, Player, NotificationPromise} from '../../../services/shared-service';
 import {ScoreBoard} from '../score-board/score-board';
 
 @Component({
@@ -9,6 +9,7 @@ import {ScoreBoard} from '../score-board/score-board';
 export class Buzzer {
   isLoading: boolean = false;
   disableOpt: boolean = true;
+  disableBuzzer: boolean = true;
   loading: Loading;
   private sound: any;
   currentQuestion: Question = new Question({
@@ -35,6 +36,7 @@ export class Buzzer {
         });
       }
       this.ngZone.run(() => {
+        this.disableBuzzer = false;
         this.currentQuestion = new Question(data.question);
       });
     });
@@ -52,21 +54,23 @@ export class Buzzer {
             buttons: [{
               text: 'ok',
               handler: () => {
-                console.log(this.arrPlayers);
-
                 this.navCtrl.push(ScoreBoard, {
                   players: this.arrPlayers
                 });
               }
             }]
           });
+          NotificationPromise.addAlert(alert);;
           this.navCtrl.present(alert);
         });
       }
     });
     clientSocket.on("playerAnswering", (data) => {
-      console.log("player Answering : " + data.playerID);
-
+      let toast = Toast.create({
+        message: data.playerName + " is answering the question",
+        duration: 3000
+      });
+      this.navCtrl.present(toast);
     });
     clientSocket.on("firstToPressBuzzer", (data) => {
       let alert = Alert.create({
@@ -74,6 +78,7 @@ export class Buzzer {
         subTitle: "Congratulations",
         buttons: ['ok']
       });
+      NotificationPromise.addAlert(alert);;
       this.navCtrl.present(alert);
       this.ngZone.run(() => {
         this.disableOpt = false;
@@ -94,17 +99,24 @@ export class Buzzer {
             }
           }]
         });
+        NotificationPromise.addAlert(alert);
         this.navCtrl.present(alert);
         this.soundPlay("media/sounds/wright_ans.mp3").play();
-       
+
       } else {
-        let toast = Toast.create({
-          message: "Wrong Answer",
-          duration: 3000,
+        let alert = Alert.create({
+          title: 'Congratulation',
+          message: "Wrong Answer -1",
+          buttons: [{
+            text: 'ok',
+            handler: () => {
+              clientSocket.emit("confirmScoreRecieved");
+            }
+          }]
         });
-        this.navCtrl.present(toast);
+        NotificationPromise.addAlert(alert);
+        this.navCtrl.present(alert);
         this.soundPlay("media/sounds/wrong_Ans.mp3").play();
-        clientSocket.emit("confirmScoreRecieved");
       }
     });
     //Server notifying clients to get ready for question
@@ -119,9 +131,21 @@ export class Buzzer {
     this.loading = Loading.create({
       content: "Waiting for Question...",
     });
+    //clear the last question
+    this.ngZone.run(() => {
+      this.currentQuestion = new Question({
+        question: "",
+        optionA: "",
+        optionB: "",
+        optionC: "",
+        optionD: ""
+      });
+    });
+    NotificationPromise.addLoading(this.loading);
     this.navCtrl.present(this.loading);
   }
   buzzer() {
+    this.disableBuzzer = true;
     clientSocket.emit("buzzer");  //Notify server for buzzer press
     this.soundPlay("media/sounds/buzzer.mp3").play();
   }

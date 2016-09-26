@@ -33,9 +33,7 @@ export class PlayersAdd {
       }
 
     });
-    
-     "media/sounds/online.mp3";
-
+    /**playerOnline - this will mark the player online */
     clientSocket.on("playerOnline", (data) => {
       this.ngZone.run(() => {
         for (var i = 0; i < this.arrPlayers.length; i++) {
@@ -47,6 +45,31 @@ export class PlayersAdd {
         this.checkAllPlayersOnline();   //Checking if all the players are online
       });
     });
+
+    /*
+     playerOffline - Display toast message when any player goes offline
+     */
+    clientSocket.on("playerOffline", (data) => {
+      let toast = Toast.create({
+        message: data.playerName + " left the game",
+        duration: 3000
+      });
+      this.navCtrl.present(toast);
+    });
+    /**emptyRoom - This is to notify host that all the players have left */
+    clientSocket.on("roomEmpty",(data)=>{
+      let alert = Alert.create({
+          title: 'Players Left',
+          subTitle: 'All the players in room has left',
+          buttons: [{
+            text:'ok',
+            handler:()=>{
+              location.reload();  //reloading the application
+            }
+          }]
+        });
+        this.navCtrl.present(alert);
+    });
     clientSocket.on("playerAddedInOtherRoom", (data) => {
       this.loader.dismiss().then(() => {
         let alert = Alert.create({
@@ -56,7 +79,6 @@ export class PlayersAdd {
         });
         this.navCtrl.present(alert);
       });
-
     });
   }
   addPlayer() {
