@@ -16,7 +16,7 @@ var rooms = []; //Array of rooms vs host vs players
 var port = process.env.PORT || 3030;  //For Heroku cloud hosting uncomment
 //var port=3030;    //Uncomment for local server 
 server.listen(port, function () {
-  console.log('Server started at '+server.address().port);
+  console.log('Server started at ' + server.address().port);
   console.log("Waiting for DB connection!!!");
   //on successfull start initiate mongo db connection
   mongo.init();
@@ -25,26 +25,29 @@ server.listen(port, function () {
 io.on('connection', function (socket) {
   socket.on("disconnect", () => {
     if (sockets[socket.id]) {
-      var room = sockets[socket.id].room;
-      if (rooms[room].hostSocketID == socket.id) {  //checking if socket is host
-        rooms[room] = new Room();
+      var roomNumber = sockets[socket.id].room;
+      if (rooms[roomNumber].hostSocketID == socket.id) {  //checking if socket is host
+        rooms[roomNumber] = new Room();
         console.log("host disconnected");
         //If host get disconnected then abort the game
-        //* More code here *//
-        io.in(room).emit('abortGame');
-        socket.leave(room);
+        io.in(roomNumber).emit('abortGame');
+        socket.leave(roomNumber);
       } else {
         //if player is leaving
-        io.in(room).emit('playerOffline', { playerID: sockets[socket.id].playerID });
-        socket.leave(sockets[socket.id]); //leave the game room
-        sockets[socket.id] = null;
-        console.log(rooms[room].players);
-        for (var i = 0; i < rooms[room].players.length; i++) {
-          if (rooms[room].players[i].playerSocketID == socket.id) {
-            console.log("Player disconnected: " + JSON.stringify(rooms[room].players[i]));
-            rooms[room].players = rooms[room].players.splice(i, 1);
+        io.in(roomNumber).emit('playerOffline', {
+          playerID: sockets[socket.id].playerID,
+          playerName: getPlayerName(sockets[socket.id].playerID, rooms[roomNumber].players)
+        });
+        
+        for (var i = 0; i < rooms[roomNumber].players.length; i++) {
+          if (rooms[roomNumber].players[i].playerID == sockets[socket.id].playerID) {
+            console.log("Player disconnected: " +rooms[roomNumber].players[i].playerName);
+            rooms[roomNumber].players = rooms[roomNumber].players.splice(i, 1);
           }
         }
+        if(rooms[roomNumber].players.length<1) io.in(roomNumber).emit('roomEmpty');
+        socket.leave(sockets[socket.id]); //leave the game room
+        sockets[socket.id] = null;  //Make socket record null
       }
     }
   });
@@ -68,7 +71,7 @@ io.on('connection', function (socket) {
           console.log("DB error while fetching the player");
         } else {
           if (docs.length > 0) {
-            player = new Player(socket.id, docs[0]);  //creating player
+            player = new Player("", docs[0]);  //creating player
             console.log("Adding player " + data.playerID + " to room " + room);
             addPlayerToRoom(player, room); //adding player to room
             socket.emit('addPlayerResponse', {
@@ -123,42 +126,63 @@ io.on('connection', function (socket) {
       io.in(roomNumber).emit('question', { question: rooms[roomNumber].questions[questionNumber] });
     } else {  //End Of the Quiz
       console.log("Quiz Ended");
-
+      saveScoreToMLab(rooms[roomNumber].players);
       io.in(roomNumber).emit('quizEnd', {
         players: rooms[roomNumber].players
       });
     }
   });
+
+  function saveScoreToMLab(players) {
+    for (i = 0; i < players.length; i++) {
+      var cursor = mongo.db.collection(mongo.studentCollection).find({ _id: players[i]._id });
+      var doc = cursor.hasNext() ? cursor.next() : null;
+      if (doc) {
+        var scoreString = doc.QuizScore + "#" + Date.now + "~" + players[i].quizScore;
+        mongo.db.collection(mongo.studentCollection).update({
+          _id: players[i]._id
+        },
+          {
+            QuizScore: scoreString
+          });
+      }
+    }
+
+  }
+  /*
+  checkAnswer - is to check the answer selected by the player for wrong or right
+  */
   socket.on("checkAnswer", (data) => {
     var roomNumber = sockets[socket.id].room;
     var questionNumber = rooms[roomNumber].currentQuestion;
     var question = rooms[roomNumber].questions[questionNumber];
-    console.log("answer: " + data.answer);
-    console.log(question);
-    if (question.answer == data.answer) {
-      var players = rooms[roomNumber].players;    //Retriving player list in the room
-      var score = 0;
-      for (var i = 0; i < players.length; i++) {
-        if (players[i].playerID == sockets[socket.id].playerID) {
-          players[i].quizScore++;    //Calculating the score
-          score = players[i].quizScore;
-        }
+
+    var players = rooms[roomNumber].players;    //Retriving player list in the room
+    var playerIndex = -1;
+    var isAnswerCorrect = false;
+    for (var i = 0; i < players.length; i++) {
+      if (players[i].playerID == sockets[socket.id].playerID) {
+        playerIndex = i;
+        break;
       }
-      rooms[roomNumber].players = players;    //assigning players back to the room with updated information
-      socket.emit('answerStatus', {  //letting client know about the answer statuc
-        playerScore: score,
-        isAnswerCorrect: true
-      });
-      io.in(roomNumber).emit('updateScore', {  //Broadcasting in room for score update notification
-        playerScore: score,
-        playerID: sockets[socket.id].playerID
-      });
-    } else {
-      socket.emit('answerStatus', {
-        isAnswerCorrect: false
-      });
     }
+    if (question.answer == data.answer) {
+      players[playerIndex].quizScore++;
+      isAnswerCorrect = true;
+    }else{
+      players[playerIndex].quizScore--;
+    }
+    rooms[roomNumber].players = players;    //assigning players back to the room with updated information
+    socket.emit('answerStatus', {  //letting client know about the answer status
+      playerScore: players[playerIndex].quizScore,
+      isAnswerCorrect: isAnswerCorrect
+    });
+    io.in(roomNumber).emit('updateScore', {  //Broadcasting in room for score update notification
+      playerScore: players[playerIndex].quizScore,
+      playerID: sockets[socket.id].playerID
+    });
   });
+
   socket.on("confirmScoreRecieved", (data) => {
     var roomNumber = sockets[socket.id].room;
     io.in(roomNumber).emit("readyForQuestion");
@@ -195,6 +219,9 @@ io.on('connection', function (socket) {
     }
   });
 
+  /*
+  This will update the socket id in the players array in room
+  */
   socket.on("buzzer", (data) => {
     var roomNumber = sockets[socket.id].room;
     console.log("buzzer pressed by: " + socket.id + " player: " + socket.id + "  " + rooms[roomNumber].buzzerSequence.length);
@@ -202,13 +229,28 @@ io.on('connection', function (socket) {
       rooms[roomNumber].buzzerSequence.push(socket.id);    //First player to press the buzzer will answer the question
       socket.emit("firstToPressBuzzer"); //This event will be triggered to the socket who is answering the question
       io.in(roomNumber).emit("playerAnswering", {   //This is to let everyone know in the room that who pressed the buzzer first
-        playerID: sockets[socket.id].playerID
+        playerID: sockets[socket.id].playerID,
+        playerName: getPlayerName(sockets[socket.id].playerID, rooms[roomNumber].players)
       });
     } else {
       rooms[roomNumber].buzzerSequence.push(socket.id);
     }
   });
 });
+
+/*
+getPlayerName - will return the name of the player for player ID
+*/
+function getPlayerName(playerID, players) {
+  var playerName = null;
+  for (var i = 0; i < players.length; i++) {
+    if (players[i].playerID == playerID) {
+      playerName = players[i].playerName;
+      break;
+    }
+  }
+  return playerName;
+}
 function getRoomOfPlayer(playerID) {
   var playerRoom = null;
   for (var roomNumber = 0; roomNumber < rooms.length; roomNumber++) {

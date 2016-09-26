@@ -11,7 +11,7 @@ exports.Player= function(playerSocketID,player){
     this.playerSocketID=playerSocketID;
     this.playerID=player._id;
     this.playerName=player.StudentName;
-    this.quizScore=player.QuizScore;
+    this.quizScore=0;
 }
 
 exports.Question=function(question){
