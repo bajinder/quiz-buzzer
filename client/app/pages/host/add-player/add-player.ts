@@ -55,20 +55,28 @@ export class PlayersAdd {
         duration: 3000
       });
       this.navCtrl.present(toast);
+      this.ngZone.run(() => {
+        for (var i = 0; i < this.arrPlayers.length; i++) {
+          if (this.arrPlayers[i].id == data.playerID) {
+            this.arrPlayers[i].isOnline = false;
+          }
+        }
+        this.checkAllPlayersOnline();   //Checking if all the players are online
+      });
     });
     /**emptyRoom - This is to notify host that all the players have left */
-    clientSocket.on("roomEmpty",(data)=>{
+    clientSocket.on("roomEmpty", (data) => {
       let alert = Alert.create({
-          title: 'Players Left',
-          subTitle: 'All the players in room has left',
-          buttons: [{
-            text:'ok',
-            handler:()=>{
-              location.reload();  //reloading the application
-            }
-          }]
-        });
-        this.navCtrl.present(alert);
+        title: 'Players Left',
+        subTitle: 'All the players in room has left',
+        buttons: [{
+          text: 'ok',
+          handler: () => {
+            location.reload();  //reloading the application
+          }
+        }]
+      });
+      this.navCtrl.present(alert);
     });
     clientSocket.on("playerAddedInOtherRoom", (data) => {
       this.loader.dismiss().then(() => {
@@ -129,5 +137,17 @@ export class PlayersAdd {
     this.sound = new Audio(src);
     this.sound.load();
     return this.sound;
+  }
+  removePlayer(playerID) {
+    this.ngZone.run(() => {
+      for (var i = 0; i < this.arrPlayers.length ; i++) {
+        if (this.arrPlayers[i].id == playerID) {
+          this.arrPlayers.splice(i,1);
+          break;
+        }
+      }
+    });
+    console.log(this.arrPlayers);
+    clientSocket.emit("removePlayer", { playerID: playerID });
   }
 }

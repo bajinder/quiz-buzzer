@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {NavController, Loading, Alert,Toast} from 'ionic-angular';
+import {NavController, Loading, Alert, Toast} from 'ionic-angular';
 import {clientSocket, NotificationPromise} from '../../../services/shared-service';
 import {Buzzer} from '../buzzer-page/buzzer-page';
 
@@ -27,13 +27,32 @@ export class PlayerJoin {
       this.nav.present(abortGameAlert);
 
     });
+    clientSocket.on("playerRemoved", (data) => {
+      console.log("removed");
+      this.loading.dismiss().then(() => {
+        this.isLoading = false;
+        let alert = Alert.create({
+          title: 'Removed',
+          subTitle: 'You have been removed from game.',
+          buttons: [{
+            text: 'ok',
+            handler: () => {
+              location.reload();
+            }
+          }]
+        });
+        //Presenting the alert to user
+        NotificationPromise.addAlert(alert);
+        this.nav.present(alert);
+      })
+    });
     /*
     playerOffline - Display toast message when any player goes offline
     */
-    clientSocket.on("playerOffline",(data)=>{
-      let toast=Toast.create({
-        message:data.playerName+" left the game",
-        duration:3000
+    clientSocket.on("playerOffline", (data) => {
+      let toast = Toast.create({
+        message: data.playerName + " left the game",
+        duration: 3000
       });
       this.navCtrl.present(toast);
     });
@@ -59,8 +78,8 @@ export class PlayerJoin {
         this.nav.push(Buzzer);
       })
     });
+
   }
-  x
   join(form) {
     var pID = form.controls['playerID'].value;
     clientSocket.emit("joinGame", { playerID: pID });

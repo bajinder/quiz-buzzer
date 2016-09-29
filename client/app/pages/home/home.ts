@@ -22,7 +22,6 @@ export class HomePage {
     this.nav.push(PlayersAdd);
   }
   playerJoin() {
-    console.log("playerJoin");
     this.nav.push(PlayerJoin);
   }
   soundPlay(src) {
