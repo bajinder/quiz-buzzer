@@ -34,19 +34,23 @@ io.on('connection', function (socket) {
         socket.leave(roomNumber);
       } else {
         //if player is leaving
-        io.in(roomNumber).emit('playerOffline', {
-          playerID: sockets[socket.id].playerID,
-          playerName: getPlayerName(sockets[socket.id].playerID, rooms[roomNumber].players)
-        });
-        
-        for (var i = 0; i < rooms[roomNumber].players.length; i++) {
-          if (rooms[roomNumber].players[i].playerID == sockets[socket.id].playerID) {
-            console.log("Player disconnected: " +rooms[roomNumber].players[i].playerName);
-            rooms[roomNumber].players = rooms[roomNumber].players.splice(i, 1);
-          }
+        if (sockets[socket.id].playerID) {
+          io.in(roomNumber).emit('playerOffline', {
+            playerID: sockets[socket.id].playerID,
+            playerName: getPlayerName(sockets[socket.id].playerID, rooms[roomNumber].players)
+          });
         }
-        if(rooms[roomNumber].players.length<1) io.in(roomNumber).emit('roomEmpty');
-        socket.leave(sockets[socket.id]); //leave the game room
+        /*
+                for (var i = 0; i < rooms[roomNumber].players.length; i++) {
+                  console.log(rooms[roomNumber].players[i]);
+                  if (rooms[roomNumber].players[i].playerID == sockets[socket.id].playerID) {
+                    console.log("Player disconnected: " + rooms[roomNumber].players[i].playerName);
+                    rooms[roomNumber].players.splice(i, 1);
+                    i = i - 1;
+                  }
+                }
+                if (rooms[roomNumber].players.length < 1) io.in(roomNumber).emit('roomEmpty');
+                socket.leave(sockets[socket.id]); //leave the game room*/
         sockets[socket.id] = null;  //Make socket record null
       }
     }
@@ -60,6 +64,27 @@ io.on('connection', function (socket) {
       room: roomNumber
     };
   });
+  /*
+  removePlayer -  Host can remove the players on Add Player screen
+  */
+  socket.on("removePlayer", (data) => {
+    var roomNumber = sockets[socket.id].room;
+    var playerSocket = null;
+    for (var i = 0; i < rooms[roomNumber].players.length; i++) {
+      if (rooms[roomNumber].players[i].playerID == data.playerID) {
+        console.log("Player removed: " + rooms[roomNumber].players[i].playerName);
+        playerSocket = rooms[roomNumber].players[i].playerSocketID;
+        console.log(playerSocket);
+        rooms[roomNumber].players.splice(i, 1);
+        i = i - 1;
+      }
+    }
+    if (playerSocket != null) io.to(playerSocket).emit("playerRemoved");
+    sockets[playerSocket] = null;
+  });
+  /*
+  addPlayer - Host can add the new players to the room
+  */
   socket.on("addPlayer", (data) => {
     var playerRoom = getRoomOfPlayer(data.playerID);
     if (playerRoom == null) {
@@ -169,7 +194,7 @@ io.on('connection', function (socket) {
     if (question.answer == data.answer) {
       players[playerIndex].quizScore++;
       isAnswerCorrect = true;
-    }else{
+    } else {
       players[playerIndex].quizScore--;
     }
     rooms[roomNumber].players = players;    //assigning players back to the room with updated information
@@ -211,6 +236,7 @@ io.on('connection', function (socket) {
         "room": room,
         "playerID": playerID
       };
+      updatePlayerSocket(playerID, socket.id, room);
       socket.join(room);
       io.in(room).emit('playerOnline', { playerID: playerID });
     } else {
@@ -218,7 +244,14 @@ io.on('connection', function (socket) {
       socket.emit("invalidPlayer");
     }
   });
-
+  //This will update the connected socket of the player in room
+  function updatePlayerSocket(playerID, socketID, roomNumber) {
+    for (i = 0; i < rooms[roomNumber].players.length; i++) {
+      if (rooms[roomNumber].players[i].playerID == playerID) {
+        rooms[roomNumber].players[i].playerSocketID = socketID;
+      }
+    }
+  }
   /*
   This will update the socket id in the players array in room
   */
