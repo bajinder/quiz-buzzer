@@ -6,6 +6,15 @@ import {Buzzer} from '../buzzer-page/buzzer-page';
 @Component({
   templateUrl: 'build/pages/player/player-join/player-join.html',
 })
+/**
+ * PlayerJoin - Class let the player to join the game and define the join game page
+ * abortGame - When the game is aborted 
+ * playerRemoved - Notification by the server if player has been removed by the host
+ * playerOffline - Notification if any player has left
+ * invalidPlayer - Server notifying player of invalid playerID
+ * gameStarted - event to notify player when game has started
+ * joinGame - Function get called on "join game"" button press and send player ID to server for validation
+ */
 export class PlayerJoin {
   nav: NavController;
   loading: Loading;

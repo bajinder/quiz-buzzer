@@ -5,6 +5,15 @@ import {clientSocket, Player, Question, NotificationPromise} from '../../../serv
 @Component({
   templateUrl: 'build/pages/host/game-room/game-room.html'
 })
+
+/**
+ * GameRoom - Class defines the page for the game room to display questions and player scores
+ * question - Socket.io event to recieve the question from the server
+ * quizEnd - Notify the host of quiz end when all the questions have been asked.
+ * updateScore - Event from server to notify updated score based on question answered
+ * readyForQuestion - Event notify server to ask player to get ready for next question
+ * askQuestion - Function fire socket.io event to notify server to push next question
+ */
 export class GameRoom {
   arrPlayers: Array<Player>;
   currentQuestion: Question = new Question({

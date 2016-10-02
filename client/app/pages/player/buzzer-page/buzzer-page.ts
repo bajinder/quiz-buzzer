@@ -6,6 +6,18 @@ import {ScoreBoard} from '../score-board/score-board';
 @Component({
   templateUrl: 'build/pages/player/buzzer-page/buzzer-page.html',
 })
+/**
+ * Buzzer - Class that defines the buzzer functionality
+ * question - Event to recieve question from the server
+ * quizEnd - Event for notification of quiz end
+ * playerAnswering - Event recieves message from server to tell which player is answering
+ * firstToPressBuzzer - Event from server if Player pressed the buzzer first
+ * answerStatus - Event that tells if answer was correct or wrong
+ * confirmScoreRecieved - Notify server on sucessful recieve of the score update
+ * buzzer - Function get called when any player press the buzzer
+ * sendAnswer - Function to notify server of the player Hoat
+ *              This function emit "checkAnswer" 
+ */
 export class Buzzer {
   isLoading: boolean = false;
   disableOpt: boolean = true;
@@ -104,6 +116,9 @@ export class Buzzer {
         this.soundPlay("media/sounds/wright_ans.mp3").play();
 
       } else {
+        this.ngZone.run(() => {
+          this.playerScore = data.playerScore;
+        });
         let alert = Alert.create({
           title: 'Congratulation',
           message: "Wrong Answer -1",

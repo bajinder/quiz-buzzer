@@ -6,6 +6,18 @@ import {GameRoom} from '../game-room/game-room';
 @Component({
   templateUrl: 'build/pages/host/add-player/add-player.html'
 })
+/**
+ * PlayerAdd -  Class that defines the functionality to add the player This class use the socket.io events to notify server
+ * iAmHost - When this page loads up then server will be notofied to register the current browser window as Host in the game.
+ * addPlayerResponse - Response from server if the player has been verified and added to the room. Else this will  display the failure alert message
+ * playerOnline - Event from sever to notify host is player is online
+ * playerOffline - Event from sever to notify host is player is offline
+ * playerAddedInOtherRoom - Event from server to notify if player has already been added to the room
+ * addPlayer - Function notify server to add player to the room
+ * startGame - Function get called on start game button and  fire event to notify server of start game
+ *             prepareQuestions - Event notify server to prepare questions for the game
+ * removePlayer - Function to remove the player and notify the server of player removal.
+ */
 export class PlayersAdd {
   playerId: String;
   arrPlayers: Array<Player> = new Array<Player>();
@@ -18,7 +30,6 @@ export class PlayersAdd {
     this.ngZone = ngZone;
     clientSocket.emit("iAmHost"); //Notify server about host
     clientSocket.on("addPlayerResponse", (data) => {
-      console.log(data.isPlayerValid);
       if (data.isPlayerValid) {
         this.ngZone.run(() => {
           this.arrPlayers.push(new Player(data.playerInfo));
@@ -31,7 +42,6 @@ export class PlayersAdd {
           this.playerInvalidAlert()
         });
       }
-
     });
     /**playerOnline - this will mark the player online */
     clientSocket.on("playerOnline", (data) => {
