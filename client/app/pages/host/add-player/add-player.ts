@@ -6,21 +6,34 @@ import {GameRoom} from '../game-room/game-room';
 @Component({
   templateUrl: 'build/pages/host/add-player/add-player.html'
 })
+/**
+ * PlayerAdd -  Class that defines the functionality to add the player This class use the socket.io events to notify server
+ * iAmHost - When this page loads up then server will be notofied to register the current browser window as Host in the game.
+ * addPlayerResponse - Response from server if the player has been verified and added to the room. Else this will  display the failure alert message
+ * playerOnline - Event from sever to notify host is player is online
+ * playerOffline - Event from sever to notify host is player is offline
+ * playerAddedInOtherRoom - Event from server to notify if player has already been added to the room
+ * addPlayer - Function notify server to add player to the room
+ * startGame - Function get called on start game button and  fire event to notify server of start game
+ *             prepareQuestions - Event notify server to prepare questions for the game
+ * removePlayer - Function to remove the player and notify the server of player removal.
+ */
 export class PlayersAdd {
   playerId: String;
   arrPlayers: Array<Player> = new Array<Player>();
   startButtonDisabled: boolean = true;
   loader: Loading;
+  private onlineSound: any;
+  private sound: any;
   constructor(private navCtrl: NavController, private ngZone: NgZone) {
     this.navCtrl = navCtrl;
     this.ngZone = ngZone;
     clientSocket.emit("iAmHost"); //Notify server about host
     clientSocket.on("addPlayerResponse", (data) => {
-      console.log(data.isPlayerValid);
       if (data.isPlayerValid) {
         this.ngZone.run(() => {
           this.arrPlayers.push(new Player(data.playerInfo));
-          this.playerId="";
+          this.playerId = "";
           this.checkAllPlayersOnline();   //Checking if all the players are online
         });
         this.loader.dismiss();
@@ -29,17 +42,51 @@ export class PlayersAdd {
           this.playerInvalidAlert()
         });
       }
-
     });
+    /**playerOnline - this will mark the player online */
     clientSocket.on("playerOnline", (data) => {
       this.ngZone.run(() => {
         for (var i = 0; i < this.arrPlayers.length; i++) {
           if (this.arrPlayers[i].id == data.playerID) {
             this.arrPlayers[i].isOnline = true;
+            this.soundPlay("media/sounds/online.mp3").play();
           }
         }
         this.checkAllPlayersOnline();   //Checking if all the players are online
       });
+    });
+
+    /*
+     playerOffline - Display toast message when any player goes offline
+     */
+    clientSocket.on("playerOffline", (data) => {
+      let toast = Toast.create({
+        message: data.playerName + " left the game",
+        duration: 3000
+      });
+      this.navCtrl.present(toast);
+      this.ngZone.run(() => {
+        for (var i = 0; i < this.arrPlayers.length; i++) {
+          if (this.arrPlayers[i].id == data.playerID) {
+            this.arrPlayers[i].isOnline = false;
+          }
+        }
+        this.checkAllPlayersOnline();   //Checking if all the players are online
+      });
+    });
+    /**emptyRoom - This is to notify host that all the players have left */
+    clientSocket.on("roomEmpty", (data) => {
+      let alert = Alert.create({
+        title: 'Players Left',
+        subTitle: 'All the players in room has left',
+        buttons: [{
+          text: 'ok',
+          handler: () => {
+            location.reload();  //reloading the application
+          }
+        }]
+      });
+      this.navCtrl.present(alert);
     });
     clientSocket.on("playerAddedInOtherRoom", (data) => {
       this.loader.dismiss().then(() => {
@@ -50,7 +97,6 @@ export class PlayersAdd {
         });
         this.navCtrl.present(alert);
       });
-
     });
   }
   addPlayer() {
@@ -67,14 +113,13 @@ export class PlayersAdd {
   startGame() {
     clientSocket.emit("prepareQuestions");    //Notofying server to prepare questions for the room from database
     clientSocket.emit("startingGame");
-    this.navCtrl.push(GameRoom,{
-      players:this.arrPlayers
+    this.navCtrl.push(GameRoom, {
+      players: this.arrPlayers
     });
   }
-
   checkAllPlayersOnline() {
     for (var i = 0; i < this.arrPlayers.length; i++) {
-      if (this.arrPlayers[i].isOnline && (this.arrPlayers.length>1)) {
+      if (this.arrPlayers[i].isOnline) {
         this.startButtonDisabled = false;
       } else {
         this.startButtonDisabled = true;
@@ -97,5 +142,22 @@ export class PlayersAdd {
       position: "top"
     });
     this.navCtrl.present(toast);
+  }
+  soundPlay(src) {
+    this.sound = new Audio(src);
+    this.sound.load();
+    return this.sound;
+  }
+  removePlayer(playerID) {
+    this.ngZone.run(() => {
+      for (var i = 0; i < this.arrPlayers.length ; i++) {
+        if (this.arrPlayers[i].id == playerID) {
+          this.arrPlayers.splice(i,1);
+          break;
+        }
+      }
+    });
+    console.log(this.arrPlayers);
+    clientSocket.emit("removePlayer", { playerID: playerID });
   }
 }

@@ -1,10 +1,30 @@
 
 import {Injectable} from '@angular/core';
 import * as io from 'socket.io-client';
-import {Loading} from 'ionic-angular';
+import {Loading,Alert,NavController} from 'ionic-angular';
+
 
 'use strict';
-export var clientSocket=io('https://buzzerserver.herokuapp.com');
+//export var clientSocket=io('https://buzzerserver.herokuapp.com'); //Uncomment for Heroku server
+export var clientSocket=io('http://localhost:3030');    //For local server
+export var NotificationPromise={
+    alert:null,
+    loading:null,
+    addAlert:function(alert:Alert){
+        this.alert=alert
+    },
+    addLoading:function(loading:Loading){
+        this.loading=loading;
+    },
+    clearAll:function(){
+        if(this.alert!=null){
+            this.alert.dismiss();
+        }
+        if(this.loading!=null){
+            this.loading.dismiss();
+        }
+    }
+};
 
 export class Player {
     id: String;
@@ -12,9 +32,9 @@ export class Player {
     quizScore: Number;
     isOnline:boolean;
     constructor(player:any){
-        this.id=player.id
-        this.name=player.Name;
-        this.quizScore=player.QuizScore;
+        this.id=player.playerID;
+        this.name=player.playerName;
+        this.quizScore=player.quizScore;
         this.isOnline=false;
     }
 }
