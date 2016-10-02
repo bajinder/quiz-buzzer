@@ -4,14 +4,22 @@ This README would normally document whatever steps are necessary to get your app
 
 ### What is this repository for? ###
 
-This repositories is for the Final year project.
+This repositories is for the Final year project of MIT at CQU.
 The project is a quiz buzzer app.
+
+### Environment set up? ###
+Software required 
+  - Nodejs
 
 ### How do I get set up? ###
 
-To set up on local machine for all the contributors they need to clone the branch 0.1 on their local machine. There are commonly two ways to do that
+To set up on local machine for all the contributors they need to clone on their local machine. There are commonly two ways to do that
 1. Using terminal (Please google tutorials "how to use git commands")
 2. Using GUI version control tool e.g. Source Tree
+
+To install dependencies run command "npm install" in both server and client folders
+
+Client is an Ionic2 application.
 ### Contribution guidelines ###
 
 When a contributor submits the contribution please provide appropriate comments and please don't submit the code in master branch until the final review.
