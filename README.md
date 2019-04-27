@@ -4,7 +4,7 @@ This README would normally document whatever steps are necessary to get your app
 
 ### What is this repository for? ###
 
-This repositories is for the Final year project of MIT at CQU.
+This repositories is for a small project done at Central Queensland University.
 The project is a quiz buzzer app.
 
 ### Environment set up? ###
